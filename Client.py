@@ -16,8 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-import json
-import urllib
+import json#this comes by default with python -V >= 2.6
 import urllib2
 class Client:
     """
@@ -26,7 +25,8 @@ class Client:
     http://search.cpan.org/~phonybone/Data-Babel-Client-0.01/
     It's purpose is to contact a Babel server 
     (default: http://babel.gdxbase.org/cgi-bin/translate.cgi)
-    and request a mapping from one gene array platform to another.
+    and request a mapping from one gene array platform to another 
+    (or set of others.)
     """
     def __init__(self, base_url="http://babel.gdxbase.org/cgi-bin/translate.cgi"):
         self.base_url = base_url
@@ -43,6 +43,22 @@ class Client:
         return self._idtypes
 
     def translate(self, **kwargs):
+        """
+        Get matching ids from one input_type to another output_type
+        Required args:
+            input_type(string): a valid idtype(platform) for the input_ids
+            input_ids(list): the ids to be cross-referenced
+            output_types(list): valid idtypes(platforms) to be crossreferenced
+        Returns:
+            A list of lists containing the crossreferenced information
+            of the form
+            [[input_id1, Xref val for outtype1, Xref val for outype2 ...],
+            ...,
+             [input_idn, Xref val for outtype1, Xref val for outype2 ...]]
+            Note that when an idtype Xrefs with multiple values for an outtype
+            there will be multiple rows for input_idx.
+        Throws: TypeError on missing args or HTTPError on server errors.
+        """
         #override any given reqtype or outformat 
         kwargs['request_type'] = 'translate'
         kwargs['output_format'] = 'json'
