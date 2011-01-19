@@ -1,17 +1,17 @@
 SYNOPSIS
 --------
 
-from pyBabel import Client
+from pyBabel.Client import Client
 c = Client()
 #Get a dictionary of valid id types: each element is idtype=>description
 idtypes = c.getIDTypes()
 #print each id and description
 for idtype in idtypes.keys():
-    print id + "=>" + idtypes[idtype]
+    print idtype + "=>" + idtypes[idtype]
 
 #Translate some Entrez gene ids to various types
 result = c.translate(input_type='gene_entrez',
-            input_ids=[2983,1829,589,20383,293883]
+            input_ids=[2983,1829,589,20383,293883],
             output_types=['protein_ensembl', 'peptide_pepatlas', 'reaction_ec', 'function_go','gene_symbol_synonym'])
 #result contains a list of lists containing the crossreferenced information of the form
 #            [[input_id1, Xref val for outtype1, Xref val for outype2 ...],
