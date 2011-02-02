@@ -35,6 +35,9 @@ As mentioned, the method 'getIDTypes' provides a list of all valid id types for 
 
 NOTE: not all translations are 1-to-1. Many of the translations will return more than one output value for a given input value. For example, there are multiple Affymetrix probeset ids for many genes. In this case, there will be one row for each unique combination of return values, so if there were six Affymetrix probe ids for a given Entrez gene id, there would be six rows in the returned array for that Entrez gene id, with the value for the Entrez gene id repeated in each row. Were you to request two non-unique translations to a call to 'translate', the returned array would contain all the different combinations of values, one on each row. In this way the returned array can grow in size so as to overwhelm the capabilities of the server, the web, and so forth, and caution must be used in making requests to the server.
 
+The method translateAll makes a translate request that returns a complete mapping from input_type to output_types.  The arguments are the same as translate except you should not include input_ids.
+
+
 LOCATION OF THE WEBSERVICE
 
 The current URL for the web service is http://babel.gdxbase.org/cgi-bin/translate.cgi. It is encoded into this client, but can be overridden by passing the named argument 'base_url' into the constructor, as in:

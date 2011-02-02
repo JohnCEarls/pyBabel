@@ -68,8 +68,34 @@ class Client:
         if len(missing_args) > 0:
             raise TypeError('missing args: ' + ' ,'.join(missing_args))
         return self._fetch(**kwargs)
-        
+    
+    def translateAll(self, **kwargs):
+        """
+        Get all matching ids from one input_type to another output_type
+        Required args:
+            input_type(string): a valid idtype(platform) for the input_ids
+            output_types(list): valid idtypes(platforms) to be crossreferenced
+        Returns:
+            A list of lists containing the crossreferenced information
+            of the form
+            [[input_type_id1, Xref val for outtype1, Xref val for outype2 ...],
+            ...,
+             [input_type_idn, Xref val for outtype1, Xref val for outype2 ...]]
+            Note that when an idtype Xrefs with multiple values for an outtype
+            there will be multiple rows for input_idx.
+        Throws: TypeError on missing args or HTTPError on server errors.
+         Returns a complete mapping from an input type to a set of output_types.
+        """
+        kwargs['request_type'] = 'translate'
+        kwargs['output_format'] = 'json'
+        kwargs['input_ids_all'] = 1 
 
+        req_args = 'request_type input_ids_all input_type output_types output_format'.split(' ')
+        missing_args = [arg for arg in req_args if arg not in kwargs]
+        if len(missing_args) > 0:
+            raise TypeError('missing args: ' + ' ,'.join(missing_args))
+        return self._fetch(**kwargs)
+ 
     def _fetch(self, **kwargs):
         """
         Returns the results of a post request to base_url with args
@@ -99,7 +125,11 @@ class Client:
         return '&'.join(reqstr)
 
 def prettyPrint(table):
-   return '\n'.join(['\t'.join([str(val) for val in row]) for row in table])
+    """
+    Little helper function that takes a table and returns a print friendly
+    string.
+    """ 
+    return '\n'.join(['\t'.join([str(val) for val in row]) for row in table])
 
 if __name__ == "__main__":
     c = Client()
