@@ -13,29 +13,30 @@ class ext:
         self.client = Client(base_url)
         self.cache_dir = cache_dir
 
-    def mergeProbes(self, ids1, ids2):
+    def mergeProbes(self, idLists):
         """
         Returns a list of 2-tuples (i,j) where i is the index in ids1 that matches ids2 
         """
         #figure out what type of data
-        id1type = self.discoverID(ids1, self._getProbeTypes())
-        if id1type == None:
-            raise pyBabelError("id1 undefined")
-        id2type = self.discoverID(ids2, self._getProbeTypes())
-        if id2type == None:
-            raise pyBabelError("id2 undefined")
-        
+        idtypes =[self.discoverID(idList, self._getProbeTypes())  for idList in idLists]
+        for i, idtype in enumerate(idtypes):
+            if idtype == None:
+                raise pyBabelError("id " + str(i) + " undefined.")
         #get the type map table
-        typeMap = self.getMap(id1type, id2type)
+        typeMap = self.getMap(idtypes)
         #build dicts from idname->indx
-        indxMap1 = self._buildIndexMap(ids1)
-        indxMap2 = self._buildIndexMap(ids2)    
+        indxMaps = [self._buildIndexMap(idList) for idList in idLists]
         #we only want unique mappings
         merged = {}
-        for i1, i2, entrez in typeMap:
-            #if entrez is none, then it is a control
-            if i1 in indxMap1 and i2 in indxMap2 and entrez != None:
-                merged[(indxMap1[i1], indxMap2[i2])] = 1
+        for row in typeMap:
+            entrez = row[-1]
+            if entrez != None:
+                good = True
+                for i, column in enumerate(row[:-1]):
+                    if column not in indxMaps[i]:
+                        good = False
+                if good:
+                    merged[tuple(row[:-1])] = 1
         return merged.keys()
 
     def getControls(self, ids):
@@ -70,10 +71,12 @@ class ext:
                 return idtype
         return None
 
-    def getAllTable(self, fromIDType, toIDType):
-        if fromIDType == None or toIDType == None:
-            return None
-        return self.client.translateAll(input_type=fromIDType, output_types=[toIDType, 'gene_entrez'])
+    def getAllTable(self, idtypes):
+    
+        input_type = idtypes[0]
+        output_type = idtypes[1:]
+        output_type.append('gene_entrez') #for control filtering
+        return self.client.translateAll(input_type=input_type, output_types=output_type)
             
     def _getProbeTypes(self):
         """
@@ -88,45 +91,44 @@ class ext:
         string.
         """ 
         return '\n'.join(['\t'.join([str(val) for val in row]) for row in table])
-    def getMap(self, idFrom, idTo, usePickle=True):
+    def getMap(self, idtypes, usePickle=True):
         """
         """
         #look for pickle
         if usePickle:
-            p = self._getPickle(idFrom, idTo)
+            p = self._getPickle(idtypes)
         else:
             p = None
 
         if p == None:#not kosher
-            map = self.getAllTable(idFrom, idTo)
-            self._writePickle(idFrom, idTo, map)#build map will pickle the result
+            map = self.getAllTable(idtypes)
+            self._writePickle(idtypes, map)#build map will pickle the result
         else:
             map = cPickle.load(p)
             p.close()
 
         return map
-
-
     def _buildIndexMap(self, ids):
         indxMap = {}
         for i, id in enumerate(ids):
             indxMap[id] = i
         return indxMap
-    def _getPickle(self, idFrom, idTo):
-        fName = os.path.join(self.cache_dir, self._getPKLName(idFrom, idTo))
+
+    def _getPickle(self,idtypes):
+        fName = os.path.join(self.cache_dir, self._getPKLName(idtypes))
         if os.path.isfile(fName):
             return open(fName, 'rb')
         else:
             return None
 
-    def _writePickle(self, idFrom, idTo, map):
-        fName = os.path.join(self.cache_dir, self._getPKLName(idFrom, idTo))
+    def _writePickle(self, idtypes, map):
+        fName = os.path.join(self.cache_dir, self._getPKLName(idtypes))
         pFile = open(fName, 'wb')
         cPickle.dump(map, pFile)
         pFile.close()
 
-    def _getPKLName(self, idFrom, idTo):
-        return idFrom + "-" + idTo + ".pkl"
+    def _getPKLName(self, idTypes):
+        return '-'.join(idTypes) + ".pkl"
 
 class pyBabelError(Exception):
     def __init__(self, value):
