@@ -18,6 +18,8 @@ class ext:
         Returns a list of 2-tuples (i,j) where i is the index in ids1 that matches ids2 
         """
         #figure out what type of data
+        if len(idLists) == 1:
+            return idLists[0]
         idtypes =[self.discoverID(idList, self._getProbeTypes())  for idList in idLists]
         for i, idtype in enumerate(idtypes):
             if idtype == None:
@@ -29,14 +31,12 @@ class ext:
         #we only want unique mappings
         merged = {}
         for row in typeMap:
-            entrez = row[-1]
-            if entrez != None:
-                good = True
-                for i, column in enumerate(row[:-1]):
-                    if column not in indxMaps[i]:
-                        good = False
-                if good:
-                    merged[tuple(row[:-1])] = 1
+            good = True
+            for i, column in enumerate(row):
+                if column not in indxMaps[i]:
+                    good = False
+            if good:
+                merged[tuple(row)] = 1
         return merged.keys()
 
     def getControls(self, ids):
@@ -69,13 +69,13 @@ class ext:
         for idtype in base_idTypes:
             if len(self.client.translate(input_type=idtype, input_ids=ids[:numIDs],output_types=[idtype]) ) > 0:
                 return idtype
-        return None
+        return Nonm
 
+        output_type.append('gene_entrez') #for control filtering
     def getAllTable(self, idtypes):
     
         input_type = idtypes[0]
         output_type = idtypes[1:]
-        output_type.append('gene_entrez') #for control filtering
         return self.client.translateAll(input_type=input_type, output_types=output_type)
             
     def _getProbeTypes(self):
