@@ -69,7 +69,7 @@ class ext:
         for idtype in base_idTypes:
             if len(self.client.translate(input_type=idtype, input_ids=ids[:numIDs],output_types=[idtype]) ) > 0:
                 return idtype
-        return Nonm
+        return None
 
         output_type.append('gene_entrez') #for control filtering
     def getAllTable(self, idtypes):
