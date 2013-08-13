@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import json#this comes by default with python -V >= 2.6
 import urllib2
-class Client:
+class Client(object):
     """
     This program is a python version of the Babel client software.
     You can see the original PERL version at 
